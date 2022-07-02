@@ -1,0 +1,43 @@
+version: "3.8"
+services:
+  ### Postgres Database ###
+  postgres:
+    image: postgres:10.4
+    container_name: demo2-postgre
+    ports:
+      - "${POSTGRES_LOCAL_PORT}:${POSTGRES_DOCKER_PORT}"
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+  ### Postgres Adminer ###
+  postgres_admin:
+    image: dpage/pgadmin4:4.28
+    container_name: demo2-pgadmin
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "${PGADMIN_LOCAL_PORT}:${PGADMIN_DOCKER_PORT}"
+  ### API Spring Boot ###
+  api:
+    container_name: demo2-api
+    build:
+      dockerfile: Dockerfile
+      context: ./
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      DATABASE_USER: ${POSTGRES_USER}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${SPRING_LOCAL_PORT}:${SPRING_DOCKER_PORT}"
